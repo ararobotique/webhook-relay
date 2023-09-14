@@ -10,6 +10,7 @@ from flask import Flask, request, abort
 app = Flask(__name__)
 
 GITHUB_SECRET = os.environ["GITHUB_SECRET"]
+SQS_ENDPOINT_URL = os.environ.get('SQS_ENDPOINT_URL')
 SQS_QUEUE = os.environ['SQS_QUEUE']
 SQS_REGION = os.environ['SQS_REGION']
 
@@ -39,11 +40,17 @@ def github_webhook_endpoint():
     # Create a big dictionary with headers and payload.
     message = {
         'headers': dict(request.headers),
-        'payload': json.loads(request.form.get('payload'))
+        'payload': request.json
     }
 
     # Send the message to Amazon SQS.
-    sqs = boto3.resource('sqs', region_name=SQS_REGION)
+    if SQS_ENDPOINT_URL:
+        sqs = boto3.resource('sqs',
+                            endpoint_url=SQS_ENDPOINT_URL,
+                            region_name=SQS_REGION,
+                            use_ssl=False)
+    else:
+        sqs = boto3.resource('sqs', region_name=SQS_REGION)
     queue = sqs.get_queue_by_name(QueueName=SQS_QUEUE)
     response = queue.send_message(
         MessageBody=json.dumps(message)
