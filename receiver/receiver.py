@@ -46,9 +46,9 @@ def github_webhook_endpoint():
     # Send the message to Amazon SQS.
     if SQS_ENDPOINT_URL:
         sqs = boto3.resource('sqs',
-                            endpoint_url=SQS_ENDPOINT_URL,
-                            region_name=SQS_REGION,
-                            use_ssl=False)
+                             endpoint_url=SQS_ENDPOINT_URL,
+                             region_name=SQS_REGION,
+                             use_ssl=False)
     else:
         sqs = boto3.resource('sqs', region_name=SQS_REGION)
     queue = sqs.get_queue_by_name(QueueName=SQS_QUEUE)
